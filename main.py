@@ -1,6 +1,5 @@
 import urllib2
 import numpy as np
-import tensorflow as tf
 
 access_token = "pk.eyJ1IjoiZ2FuZXNocmF2aWNoYW5kcmFuIiwiYSI6ImNpczUxMTBqNTBhNDUyb2xrcGwzdGQ5YzcifQ.QoSUWMk-EZJoPTn-K8OreA"
 
