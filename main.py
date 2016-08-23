@@ -2,13 +2,6 @@ import urllib2
 import numpy as np
 import tensorflow as tf
 
-from PIL import Image
-import requests
-from StringIO import StringIO
-
-import matplotlib.pyplot as plt
-import matplotlib.image as mpimg
-
 access_token = "pk.eyJ1IjoiZ2FuZXNocmF2aWNoYW5kcmFuIiwiYSI6ImNpczUxMTBqNTBhNDUyb2xrcGwzdGQ5YzcifQ.QoSUWMk-EZJoPTn-K8OreA"
 
 def waterImage(lat, lon, zoom=17):
