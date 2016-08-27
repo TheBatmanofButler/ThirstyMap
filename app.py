@@ -1,10 +1,11 @@
 from flask import Flask
 import os
+import image
 app = Flask(__name__)
 
 @app.route("/")
 def hello():
-    return "Hello World!"
+    return image.waterImage(-73.961927, 40.785664, 17)
 
 if __name__ == '__main__':
 	app.debug = True
