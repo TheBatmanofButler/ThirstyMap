@@ -16,17 +16,27 @@ class WaterSourceClassifier:
 		self.img_directory = img_directory
 		self.geo_data = {}
 		self.map_tensors = []
+		self.filepaths = []
+		self.images = []
 		self.labels = []
+
+
 		self.access_token = "pk.eyJ1IjoiZ2FuZXNocmF2aWNoYW5kcmFuIiwiYSI6ImNpczUxMTBqNTBhNDUyb2xrcGwzdGQ5YzcifQ.QoSUWMk-EZJoPTn-K8OreA"
 
 		if use_local_images:
 			self.geo_data = self.load_obj("image_metadata")
-			print type(self.geo_data)
 
 			for key in self.geo_data:
 				source = self.geo_data[key]
+				self.labels.append(source["label"])
+
 				img_path = os.path.join(self.img_directory, source["name"] + ".png")
-				self.load_tensor(img_path)
+				self.filepaths.append(img_path)
+
+				self.image_obj = Image.open(img_path) #Can be many different formats.
+				self.image_list = np.array(self.image_obj).tolist()
+				self.images.append(self.image_list)
+
 		else:
 
 			if not os.path.exists(self.img_directory):
@@ -39,6 +49,19 @@ class WaterSourceClassifier:
 				self.make_tensor(source)
 
 		self.classify()
+
+	def read_images_from_disk(self, input_queue):
+		"""Consumes a single filename and label as a ' '-delimited string.
+		Args:
+		  filename_and_label_tensor: A scalar string tensor.
+		Returns:
+		  Two tensors: the decoded image, and the string label.
+		"""
+		label = input_queue[1]
+		file_contents = tf.read_file(input_queue[0])
+		print dir(file_contents), "123"
+		example = tf.image.decode_png(file_contents, channels=3)
+		return example, label
 
 	def save_obj(self, obj, name):
 		np.save(os.path.join(self.img_directory, name + ".npy"), obj)
@@ -62,11 +85,7 @@ class WaterSourceClassifier:
 
 	def load_tensor(self, img_path):
 
-		print img_path
 		tensor = tf.image.decode_png(img_path)
-		print tensor
-		tensor2 = tf.image.decode_png("/Users/ganeshravichandran/Dropbox/Code/thirsty/images/HUDSON_RIVER_AT_SOUTH_DOCK_AT_WEST_POINT_NY.png")
-		print tensor2
 		self.map_tensors.append(tensor)
 		self.labels.append([1]);
 
@@ -77,16 +96,24 @@ class WaterSourceClassifier:
 		# list of water sources
 		data = json.loads(res.read())["value"]["timeSeries"]
 
-		for source in data:
-			sourceInfo = source["sourceInfo"]
-			siteCode = sourceInfo["siteCode"][0]["value"]
-			sourceGeoInfo = sourceInfo["geoLocation"]["geogLocation"]
+		stopper = 0
 
-			self.geo_data[siteCode] = {
-				"name": sourceInfo["siteName"].replace (" ", "_"),
-				"lat": sourceGeoInfo["latitude"],
-				"lon": sourceGeoInfo["longitude"]
-			}
+		for source in data:
+			if stopper < 100:
+				sourceInfo = source["sourceInfo"]
+				siteCode = sourceInfo["siteCode"][0]["value"]
+				sourceGeoInfo = sourceInfo["geoLocation"]["geogLocation"]
+
+				self.geo_data[siteCode] = {
+					"name": sourceInfo["siteName"].replace (" ", "_"),
+					"lat": sourceGeoInfo["latitude"],
+					"lon": sourceGeoInfo["longitude"],
+					"label": 1
+				}
+
+				self.make_tensor(self.geo_data[siteCode])
+
+				stopper += 1
 
 		self.save_obj(self.geo_data, "image_metadata")
 
@@ -94,29 +121,31 @@ class WaterSourceClassifier:
 
 		print "Starting classify()..."
 
-		x = tf.placeholder(tf.float32, [None, 1000000])
-		W = tf.Variable(tf.zeros([1000000, 2]))
-		b = tf.Variable(tf.zeros([2]))
+		x = tf.placeholder(tf.float32, [None, 1000])
+		W = tf.Variable(tf.zeros([1000, 1]))
+		b = tf.Variable(tf.zeros([1]))
 		y = tf.nn.softmax(tf.matmul(x, W) + b)
 
-		y_ = tf.placeholder(tf.float32, [None, 2])
+		y_ = tf.placeholder(tf.float32, [None, 1])
 		cross_entropy = tf.reduce_mean(-tf.reduce_sum(y_ * tf.log(y), reduction_indices=[1]))
 		train_step = tf.train.GradientDescentOptimizer(0.5).minimize(cross_entropy)
 		init = tf.initialize_all_variables()
 		sess = tf.Session()
 		sess.run(init)
 
-		training_set = self.map_tensors[:len(self.map_tensors)/2]
-		training_labels = self.labels[:len(self.labels)/2]
+		training_labels = [1] * len(self.images)
 
-		print training_set
+		# training_set = self.image[:len(self.tf_images)/2]
+		# training_labels = self.tf_labels[:len(self.tf_labels)/2]
 
-		test_set = self.map_tensors[len(self.map_tensors)/2:]
-		test_labels = self.labels[len(self.labels)/2:]
+		# self.wtf = training_set[0]
 
-		sess.run(train_step, feed_dict={x: training_set, y_: training_labels})
+		# test_set = self.tf_images[len(self.tf_images)/2:]
+		# test_labels = self.tf_labels[len(self.tf_labels)/2:]
+		print self.images[0][0]
+		sess.run(train_step, feed_dict={x: np.array(self.images), y_: training_labels})
 
-		correct_prediction = tf.equal(tf.argmax(y,1), tf.argmax(y_,1))
-		accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
-		print(sess.run(accuracy, feed_dict={x: test_set, y_: test_labels}))
+		# correct_prediction = tf.equal(tf.argmax(y,1), tf.argmax(y_,1))
+		# accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
+		# print(sess.run(accuracy, feed_dict={x: test_set, y_: test_labels}))
 
