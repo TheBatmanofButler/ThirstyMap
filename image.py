@@ -121,19 +121,26 @@ class WaterSourceClassifier:
 
 		print "Starting classify()..."
 
-		x = tf.placeholder(tf.float32, [None, 1000])
-		W = tf.Variable(tf.zeros([1000, 1]))
+		x = tf.placeholder(tf.float32)
+		W = tf.Variable(tf.zeros([1000, 1000]))
 		b = tf.Variable(tf.zeros([1]))
 		y = tf.nn.softmax(tf.matmul(x, W) + b)
 
-		y_ = tf.placeholder(tf.float32, [None, 1])
+		y_ = tf.placeholder(tf.float32)
 		cross_entropy = tf.reduce_mean(-tf.reduce_sum(y_ * tf.log(y), reduction_indices=[1]))
 		train_step = tf.train.GradientDescentOptimizer(0.5).minimize(cross_entropy)
 		init = tf.initialize_all_variables()
 		sess = tf.Session()
 		sess.run(init)
 
-		training_labels = [1] * len(self.images)
+		# training_labels = [1] * len(self.images[0])
+
+		new_list = []
+
+		for row in self.images[0]:
+			new_list.extend(row)
+
+		print new_list
 
 		# training_set = self.image[:len(self.tf_images)/2]
 		# training_labels = self.tf_labels[:len(self.tf_labels)/2]
@@ -142,10 +149,10 @@ class WaterSourceClassifier:
 
 		# test_set = self.tf_images[len(self.tf_images)/2:]
 		# test_labels = self.tf_labels[len(self.tf_labels)/2:]
-		print self.images[0][0]
-		sess.run(train_step, feed_dict={x: np.array(self.images), y_: training_labels})
 
+		# sess.run(train_step, feed_dict={x: np.array(self.images[0]), y_: training_labels[0]})
+		# print y._shape, y_._shape, 
 		# correct_prediction = tf.equal(tf.argmax(y,1), tf.argmax(y_,1))
 		# accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
-		# print(sess.run(accuracy, feed_dict={x: test_set, y_: test_labels}))
+		# print(sess.run(accuracy, feed_dict={x: np.array(self.images[1]), y_: training_labels[1]}))
 
