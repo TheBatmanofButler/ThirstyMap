@@ -1,11 +1,24 @@
-from flask import Flask
+from flask import Flask, render_template, request
 import os
 import image
 app = Flask(__name__)
 
 @app.route("/")
-def hello():
-    return image.waterImage(-73.961927, 40.785664, 17)
+def index():
+	 return render_template('index.html', data = {})
+
+@app.route('/', methods=['POST'])
+def form_post():
+
+    state_code = request.form['stateCode']
+    number_of_hits = int(request.form['numberOfHits'])
+
+    data = image.get_water_sources(state_code, number_of_hits)
+
+    return render_template('index.html', state_code = state_code,
+    					number_of_hits = number_of_hits,
+    					data = data
+    					)
 
 if __name__ == '__main__':
 	app.debug = True

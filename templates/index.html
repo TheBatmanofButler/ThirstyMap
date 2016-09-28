@@ -1,0 +1,44 @@
+<html>
+
+  <head></head>
+
+  <body>
+
+    <div class = "currentQuery">
+      State Code: {{ state_code }}
+      Number of Hits: {{ number_of_hits }}
+    </div>
+
+    <div class = "inputForm">
+      <form action = "." method = "POST">
+        <input type = "text" name = "stateCode">
+        <input type = "text" name = "numberOfHits">
+        <input type = "submit" name = "submitButton">
+      </form>
+    </div>
+
+    <div>
+
+      <table>
+        <tr>
+          <th>Site Code</th>
+          <th>Site Name</th>
+          <th>Lat</th>
+          <th>Lon</th>
+          <th>Image</th>
+        </tr>
+        {% for key, value in data.iteritems() %}
+          <tr>
+            <td>{{ key }}</td>
+            <td>{{ value["name"] }}</td>
+            <td>{{ value["lat"] }}</td>
+            <td>{{ value["lon"] }}</td>
+          </tr>
+        {% endfor %}
+      </table>
+
+    </div>
+
+  </body>
+
+</html>
