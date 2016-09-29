@@ -1,19 +1,23 @@
 <html>
 
-  <head></head>
+  <head>
+
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='main.css') }}">
+
+  </head>
 
   <body>
 
-    <div class = "currentQuery">
+    <div class="currentQuery">
       State Code: {{ state_code }}
       Number of Hits: {{ number_of_hits }}
     </div>
 
-    <div class = "inputForm">
-      <form action = "." method = "POST">
-        <input type = "text" name = "stateCode">
-        <input type = "text" name = "numberOfHits">
-        <input type = "submit" name = "submitButton">
+    <div class="inputForm">
+      <form action="." method="POST">
+        <input type="text" name="stateCode">
+        <input type="text" name="numberOfHits">
+        <input type="submit" name="submitButton">
       </form>
     </div>
 
@@ -33,6 +37,9 @@
             <td>{{ value["name"] }}</td>
             <td>{{ value["lat"] }}</td>
             <td>{{ value["lon"] }}</td>
+            <td>
+              <img class="image" src="{{ value['image_url'] }}">
+            </td>
           </tr>
         {% endfor %}
       </table>

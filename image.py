@@ -1,6 +1,8 @@
 import urllib2
 import json
 
+access_token = "pk.eyJ1IjoiZ2FuZXNocmF2aWNoYW5kcmFuIiwiYSI6ImNpczUxMTBqNTBhNDUyb2xrcGwzdGQ5YzcifQ.QoSUWMk-EZJoPTn-K8OreA"
+
 def get_water_sources(state_cd="NY", number_of_hits = 10):
 
 	# {siteCode: name, lat, lon, label}
@@ -19,11 +21,19 @@ def get_water_sources(state_cd="NY", number_of_hits = 10):
 		siteCode = sourceInfo["siteCode"][0]["value"]
 		sourceGeoInfo = sourceInfo["geoLocation"]["geogLocation"]
 
+		name = sourceInfo["siteName"].replace (" ", "_")
+		lon = sourceGeoInfo["longitude"]
+		lat = sourceGeoInfo["latitude"]
+
 		geo_data[siteCode] = {
-			"name": sourceInfo["siteName"].replace (" ", "_"),
-			"lat": sourceGeoInfo["latitude"],
-			"lon": sourceGeoInfo["longitude"],
-			"label": 1
+			"name": name,
+			"lon": lon,
+			"lat": lat,
+			"image_url": get_image_url_from_Mapbox(lon, lat)
 		}
 
 	return geo_data
+
+def get_image_url_from_Mapbox(lon, lat, zoom=17):
+	url = "https://api.mapbox.com/v4/mapbox.satellite/%s,%s,%s/1000x1000.png32?access_token=%s" % (lon, lat, zoom, access_token)
+	return url
