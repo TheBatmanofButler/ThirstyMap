@@ -5,3 +5,11 @@ body, html {
 .image {
 	height: 120px;
 }
+
+.github-logo {
+	float: right;
+}
+
+.github-logo>img:hover {
+	opacity: 0.5;
+}
